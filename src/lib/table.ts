@@ -146,35 +146,25 @@ function renderHeader({
 }
 
 function getMaxColumnLengths({ columnsData, columnsDef }: TableProps) {
-  const columnsLengths: any = {}
-  columnsData.map((column: columnData) => {
+  const columnsLengths: Record<string, number[]> = {}
+
+  columnsData.forEach((column: columnData) => {
     columnsLengths[column.field] = [column.headerName.length]
-    return undefined
   })
 
-  columnsDef.map(column => {
-    for (const property in column) {
-      if (
-        columnsData.findIndex(
-          (columnData: columnData) => columnData.field === property,
-        ) === -1
-      ) {
-        continue
+  columnsDef.forEach((column: Record<string, any>) => {
+    Object.entries(column).forEach(([key, value]: [string, any]) => {
+      if (columnsLengths[key]) {
+        columnsLengths[key].push(value.toString().length as number)
       }
-      const p = property
-      const data: string = column[p].toString()
-      columnsLengths[p].push(data.length)
-    }
-    return undefined
+    })
   })
 
-  const columnsMaxLenghts: any = {}
+  const columnsMaxLenghts: Record<string, number> = {}
 
-  for (const property in columnsLengths) {
-    const p = property
-    const data: number[] = columnsLengths[p]
-    columnsMaxLenghts[p] = Math.max(...data)
-  }
+  Object.entries(columnsLengths).forEach(([key, values]) => {
+    columnsMaxLenghts[key] = Math.max(...values)
+  })
 
   return columnsMaxLenghts
 }
