@@ -28,6 +28,7 @@ const columnsData: columnData[] = [
 const columnsDef: any = [
   { id: 1, text: 'Hola mundo', mambo: 'asdasdasdasdasdasd', test: 'hola' },
   { id: 2, text: 'Hola texto', mambo: 'asdasd3', paco: 'prueba' },
+  { id: 3, text: 'Hola texto', mambo: 'asdasd3', paco: 'prueba' },
 ]
 
 const topLeft = '┌'
@@ -43,7 +44,7 @@ const bottomLine = '┴'
 const verticalLine = '│'
 const space = ' '
 
-function renderTable({ columnsData, columnsDef }: TableProps) {
+export function renderTable({ columnsData, columnsDef }: TableProps) {
   const maxLengths = getMaxColumnLengths({ columnsData, columnsDef })
   const header = renderHeader({ columnsData, maxLengths })
   const cells = renderCells({ columnsData, columnsDef, maxLengths })
@@ -60,56 +61,46 @@ function renderCells({
   columnsDef: any[]
   maxLengths: any
 }) {
-  const t = columnsData.map(d => d.field)
-  const test = columnsDef.map(data => {
-    const r: any = {}
-    t.map(d => {
-      r[d] = data[d] === undefined ? '' : data[d]
+  const columnsToRender = columnsData.map(d => d.field)
+  const tableData = columnsDef.map(data => {
+    const columnsFiltered: any = {}
+    columnsToRender.map(column => {
+      columnsFiltered[column] = data[column] === undefined ? '' : data[column]
       return undefined
     })
-    return r
+    return columnsFiltered
   })
 
   let render = ''
   let cellBottomEnd = bottomLeft
-  let rowIndex = 0
-  for (const row of test) {
+
+  tableData.forEach((row: Record<string, number | string>, rowIndex) => {
     let cell = verticalLine
     let cellBottom = middleLeftLine
-    let index = 0
-    for (const data in row) {
-      const restOfText = maxLengths[data] - row[data].toString().length
-      cell += `${space}${row[data]}${space.repeat(
-        restOfText,
-      )}${space}${verticalLine}`
-      cellBottom += `${horizontalLine}${horizontalLine.repeat(
-        maxLengths[data] as number,
-      )}${horizontalLine}${
-        index === Object.keys(row as object).length - 1
-          ? middleRightLine
-          : horizontalTLine
-      }`
-      if (rowIndex === 0) {
-        cellBottomEnd += `${horizontalLine}${horizontalLine.repeat(
-          maxLengths[data] as number,
-        )}${horizontalLine}${
-          index === Object.keys(row as object).length - 1
-            ? bottomRight
-            : bottomLine
-        }`
-      }
 
-      index++
-    }
-    rowIndex++
-    render +=
-      cell +
-      '\n' +
-      (rowIndex === Object.keys(columnsDef).length - 1
-        ? cellBottom
-        : cellBottomEnd) +
-      '\n'
-  }
+    Object.entries(row).forEach(
+      ([data, value]: [string, any], index, array) => {
+        const restOfText = maxLengths[data] - String(value).length
+        cell += `${space}${value}${space.repeat(
+          restOfText,
+        )}${space}${verticalLine}`
+        cellBottom += `${horizontalLine.repeat(
+          (maxLengths[data] as number) + 2,
+        )}${index === array.length - 1 ? middleRightLine : horizontalTLine}`
+
+        if (rowIndex === 0) {
+          cellBottomEnd += `${horizontalLine.repeat(
+            (maxLengths[data] as number) + 2,
+          )}${index === array.length - 1 ? bottomRight : bottomLine}`
+        }
+      },
+    )
+
+    render += `${cell}\n${
+      rowIndex === tableData.length - 1 ? cellBottomEnd : cellBottom
+    }\n`
+  })
+
   return render
 }
 
@@ -118,38 +109,31 @@ function renderHeader({
   maxLengths,
 }: {
   columnsData: columnData[]
-  maxLengths: Record<string, number>
+  maxLengths: any
 }) {
-  const headerTop =
-    columnsData
-      .map(
-        data =>
-          `${horizontalLine}${horizontalLine.repeat(
-            maxLengths[data.field],
-          )}${horizontalLine}`,
-      )
-      .join(verticalTopLine) + topRight
+  let headerTop = topLeft
+  let headerText = verticalLine
+  let headerBottom = middleLeftLine
+  for (const data of columnsData) {
+    const index = columnsData.indexOf(data)
+    const restOfText = maxLengths[data.field] - data.headerName.length
+    headerText += `${space}${data.headerName}${space.repeat(
+      restOfText,
+    )}${space}${verticalLine}`
+    headerTop += `${horizontalLine}${horizontalLine.repeat(
+      maxLengths[data.field] as number,
+    )}${horizontalLine}${
+      index === columnsData.length - 1 ? topRight : verticalTopLine
+    }`
+    headerBottom += `${horizontalLine}${horizontalLine.repeat(
+      maxLengths[data.field] as number,
+    )}${horizontalLine}${
+      index === columnsData.length - 1 ? middleRightLine : horizontalTLine
+    }`
+  }
 
-  const headerText = columnsData
-    .map(
-      data =>
-        `${space}${data.headerName}${space.repeat(
-          maxLengths[data.field] - data.headerName.length,
-        )}${space}`,
-    )
-    .join(verticalLine)
-
-  const headerBottom =
-    columnsData
-      .map(
-        data =>
-          `${horizontalLine}${horizontalLine.repeat(
-            maxLengths[data.field],
-          )}${horizontalLine}`,
-      )
-      .join(horizontalTLine) + middleRightLine
-
-  return `${topLeft}${headerTop}\n${verticalLine}${headerText}${verticalLine}\n${middleLeftLine}${headerBottom}`
+  const render = `${headerTop}\n${headerText}\n${headerBottom}`
+  return render
 }
 
 function getMaxColumnLengths({ columnsData, columnsDef }: TableProps) {
