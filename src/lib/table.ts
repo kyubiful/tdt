@@ -7,17 +7,21 @@
 // │ data │ data2 │
 // └──────┴───────┘
 
-interface columnData {
+interface ColumnData {
   headerName: string
   field: string
 }
 
+type ColumnDef = Record<string, string | number>
+
+type ColumnsMaxLenght = Record<string, number>
+
 interface TableProps {
-  columnsData: columnData[]
-  columnsDef: any[]
+  columnsData: ColumnData[]
+  columnsDef: ColumnDef[]
 }
 
-const columnsData: columnData[] = [
+const columnsData: ColumnData[] = [
   { headerName: 'Id header', field: 'id' },
   { headerName: 'Text header', field: 'text' },
   { headerName: 'mambo header', field: 'mambo' },
@@ -25,7 +29,7 @@ const columnsData: columnData[] = [
   { headerName: 'Paco', field: 'paco' },
 ]
 
-const columnsDef: any = [
+const columnsDef: ColumnDef[] = [
   { id: 1, text: 'Hola mundo', mambo: 'asdasdasdasdasdasd', test: 'hola' },
   { id: 2, text: 'Hola texto', mambo: 'asdasd3', paco: 'prueba' },
   { id: 3, text: 'Hola texto', mambo: 'asdasd3', paco: 'prueba' },
@@ -47,25 +51,25 @@ const space = ' '
 export function renderTable({ columnsData, columnsDef }: TableProps) {
   const maxLengths = getMaxColumnLengths({ columnsData, columnsDef })
   const header = renderHeader({ columnsData, maxLengths })
-  const cells = renderCells({ columnsData, columnsDef, maxLengths })
+  const cells = renderRows({ columnsData, columnsDef, maxLengths })
   console.log(header)
   console.log(cells)
 }
 
-function renderCells({
+function renderRows({
   columnsData,
   columnsDef,
   maxLengths,
 }: {
-  columnsData: columnData[]
-  columnsDef: any[]
-  maxLengths: any
-}) {
+  columnsData: ColumnData[]
+  columnsDef: ColumnDef[]
+  maxLengths: ColumnsMaxLenght
+}): string {
   const columnsToRender = columnsData.map(d => d.field)
   const tableData = columnsDef.map(data => {
     const columnsFiltered: any = {}
     columnsToRender.map(column => {
-      columnsFiltered[column] = data[column] === undefined ? '' : data[column]
+      columnsFiltered[column] = data[column] ?? ''
       return undefined
     })
     return columnsFiltered
@@ -84,14 +88,14 @@ function renderCells({
         cell += `${space}${value}${space.repeat(
           restOfText,
         )}${space}${verticalLine}`
-        cellBottom += `${horizontalLine.repeat(
-          (maxLengths[data] as number) + 2,
-        )}${index === array.length - 1 ? middleRightLine : horizontalTLine}`
+        cellBottom += `${horizontalLine.repeat(maxLengths[data] + 2)}${
+          index === array.length - 1 ? middleRightLine : horizontalTLine
+        }`
 
         if (rowIndex === 0) {
-          cellBottomEnd += `${horizontalLine.repeat(
-            (maxLengths[data] as number) + 2,
-          )}${index === array.length - 1 ? bottomRight : bottomLine}`
+          cellBottomEnd += `${horizontalLine.repeat(maxLengths[data] + 2)}${
+            index === array.length - 1 ? bottomRight : bottomLine
+          }`
         }
       },
     )
@@ -108,9 +112,9 @@ function renderHeader({
   columnsData,
   maxLengths,
 }: {
-  columnsData: columnData[]
-  maxLengths: any
-}) {
+  columnsData: ColumnData[]
+  maxLengths: ColumnsMaxLenght
+}): string {
   let headerTop = topLeft
   let headerText = verticalLine
   let headerBottom = middleLeftLine
@@ -121,12 +125,12 @@ function renderHeader({
       restOfText,
     )}${space}${verticalLine}`
     headerTop += `${horizontalLine}${horizontalLine.repeat(
-      maxLengths[data.field] as number,
+      maxLengths[data.field],
     )}${horizontalLine}${
       index === columnsData.length - 1 ? topRight : verticalTopLine
     }`
     headerBottom += `${horizontalLine}${horizontalLine.repeat(
-      maxLengths[data.field] as number,
+      maxLengths[data.field],
     )}${horizontalLine}${
       index === columnsData.length - 1 ? middleRightLine : horizontalTLine
     }`
@@ -136,10 +140,13 @@ function renderHeader({
   return render
 }
 
-function getMaxColumnLengths({ columnsData, columnsDef }: TableProps) {
+function getMaxColumnLengths({
+  columnsData,
+  columnsDef,
+}: TableProps): ColumnsMaxLenght {
   const columnsLengths: Record<string, number[]> = {}
 
-  columnsData.forEach((column: columnData) => {
+  columnsData.forEach((column: ColumnData) => {
     columnsLengths[column.field] = [column.headerName.length]
   })
 
@@ -151,7 +158,7 @@ function getMaxColumnLengths({ columnsData, columnsDef }: TableProps) {
     })
   })
 
-  const columnsMaxLenghts: Record<string, number> = {}
+  const columnsMaxLenghts: ColumnsMaxLenght = {}
 
   Object.entries(columnsLengths).forEach(([key, values]) => {
     columnsMaxLenghts[key] = Math.max(...values)
