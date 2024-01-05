@@ -35,18 +35,20 @@ const columnsDef: ColumnDef[] = [
   { id: 3, text: 'Hola texto', mambo: 'asdasd3', paco: 'prueba' },
 ]
 
-const topLeft = '┌'
-const topRight = '┐'
-const verticalTopLine = '┬'
-const middleRightLine = '┤'
-const middleLeftLine = '├'
-const horizontalTLine = '┼'
-const horizontalLine = '─'
-const bottomLeft = '└'
-const bottomRight = '┘'
-const bottomLine = '┴'
-const verticalLine = '│'
-const space = ' '
+const BOX_DRAWING_CHARACTERS = Object.freeze({
+  TOP_LEFT: '┌',
+  TOP_RIGHT: '┐',
+  TOP_SEPARATOR: '┬',
+  MIDDLE_LEFT: '├',
+  MIDDLE_RIGHT: '┤',
+  MIDDLE_SEPARATOR: '┼',
+  HORIZONTAL_LINE: '─',
+  BOTTOM_LEFT: '└',
+  BOTTOM_RIGHT: '┘',
+  BOTTOM_CENTER: '┴',
+  VERTICAL_LINE: '│',
+  SPACE: ' ',
+})
 
 export function renderTable({ columnsData, columnsDef }: TableProps) {
   const maxLengths = getMaxColumnLengths({ columnsData, columnsDef })
@@ -76,25 +78,35 @@ function renderRows({
   })
 
   let render = ''
-  let cellBottomEnd = bottomLeft
+  let cellBottomEnd = BOX_DRAWING_CHARACTERS.BOTTOM_LEFT
 
   tableData.forEach((row: Record<string, number | string>, rowIndex) => {
-    let cell = verticalLine
-    let cellBottom = middleLeftLine
+    let cell = BOX_DRAWING_CHARACTERS.VERTICAL_LINE
+    let cellBottom = BOX_DRAWING_CHARACTERS.MIDDLE_LEFT
 
     Object.entries(row).forEach(
       ([data, value]: [string, any], index, array) => {
         const restOfText = maxLengths[data] - String(value).length
-        cell += `${space}${value}${space.repeat(
-          restOfText,
-        )}${space}${verticalLine}`
-        cellBottom += `${horizontalLine.repeat(maxLengths[data] + 2)}${
-          index === array.length - 1 ? middleRightLine : horizontalTLine
+        cell += `${
+          BOX_DRAWING_CHARACTERS.SPACE
+        }${value}${BOX_DRAWING_CHARACTERS.SPACE.repeat(restOfText)}${
+          BOX_DRAWING_CHARACTERS.SPACE
+        }${BOX_DRAWING_CHARACTERS.VERTICAL_LINE}`
+        cellBottom += `${BOX_DRAWING_CHARACTERS.HORIZONTAL_LINE.repeat(
+          maxLengths[data] + 2,
+        )}${
+          index === array.length - 1
+            ? BOX_DRAWING_CHARACTERS.MIDDLE_RIGHT
+            : BOX_DRAWING_CHARACTERS.MIDDLE_SEPARATOR
         }`
 
         if (rowIndex === 0) {
-          cellBottomEnd += `${horizontalLine.repeat(maxLengths[data] + 2)}${
-            index === array.length - 1 ? bottomRight : bottomLine
+          cellBottomEnd += `${BOX_DRAWING_CHARACTERS.HORIZONTAL_LINE.repeat(
+            maxLengths[data] + 2,
+          )}${
+            index === array.length - 1
+              ? BOX_DRAWING_CHARACTERS.BOTTOM_RIGHT
+              : BOX_DRAWING_CHARACTERS.BOTTOM_CENTER
           }`
         }
       },
@@ -115,24 +127,34 @@ function renderHeader({
   columnsData: ColumnData[]
   maxLengths: ColumnsMaxLenght
 }): string {
-  let headerTop = topLeft
-  let headerText = verticalLine
-  let headerBottom = middleLeftLine
+  let headerTop = BOX_DRAWING_CHARACTERS.TOP_LEFT
+  let headerText = BOX_DRAWING_CHARACTERS.VERTICAL_LINE
+  let headerBottom = BOX_DRAWING_CHARACTERS.MIDDLE_LEFT
   for (const data of columnsData) {
     const index = columnsData.indexOf(data)
     const restOfText = maxLengths[data.field] - data.headerName.length
-    headerText += `${space}${data.headerName}${space.repeat(
-      restOfText,
-    )}${space}${verticalLine}`
-    headerTop += `${horizontalLine}${horizontalLine.repeat(
-      maxLengths[data.field],
-    )}${horizontalLine}${
-      index === columnsData.length - 1 ? topRight : verticalTopLine
+    headerText += `${BOX_DRAWING_CHARACTERS.SPACE}${
+      data.headerName
+    }${BOX_DRAWING_CHARACTERS.SPACE.repeat(restOfText)}${
+      BOX_DRAWING_CHARACTERS.SPACE
+    }${BOX_DRAWING_CHARACTERS.VERTICAL_LINE}`
+    headerTop += `${
+      BOX_DRAWING_CHARACTERS.HORIZONTAL_LINE
+    }${BOX_DRAWING_CHARACTERS.HORIZONTAL_LINE.repeat(maxLengths[data.field])}${
+      BOX_DRAWING_CHARACTERS.HORIZONTAL_LINE
+    }${
+      index === columnsData.length - 1
+        ? BOX_DRAWING_CHARACTERS.TOP_RIGHT
+        : BOX_DRAWING_CHARACTERS.TOP_SEPARATOR
     }`
-    headerBottom += `${horizontalLine}${horizontalLine.repeat(
-      maxLengths[data.field],
-    )}${horizontalLine}${
-      index === columnsData.length - 1 ? middleRightLine : horizontalTLine
+    headerBottom += `${
+      BOX_DRAWING_CHARACTERS.HORIZONTAL_LINE
+    }${BOX_DRAWING_CHARACTERS.HORIZONTAL_LINE.repeat(maxLengths[data.field])}${
+      BOX_DRAWING_CHARACTERS.HORIZONTAL_LINE
+    }${
+      index === columnsData.length - 1
+        ? BOX_DRAWING_CHARACTERS.MIDDLE_RIGHT
+        : BOX_DRAWING_CHARACTERS.MIDDLE_SEPARATOR
     }`
   }
 
